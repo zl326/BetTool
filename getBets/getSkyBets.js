@@ -135,9 +135,13 @@ getBetsAccumulators = function(uri) {
 
         })
 
-        if (os.type() != 'Linux') {
+        if (os.type() == 'Linux') {
+          fs.writeFile('../storage/external-1/BetTool/data.json', JSON.stringify(results, null, 2), function() {});
+        }
+        else {
           fs.writeFile('./data.json', JSON.stringify(results, null, 2), function() {});
         }
+
         resolve(results)
 
       })
