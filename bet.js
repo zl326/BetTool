@@ -15,14 +15,25 @@ cornersTakenInEachHalf
   return processFootball.collate(teamList, results)
 })
 .then( function(teamList) {
+  console.log(teamList)
 
   return Promise.all([Promise.resolve(teamList), processFootball.getMappingSkyTotalCorner()])
 })
 .then( function([teamList, map]) {
-  console.log(teamList)
-  processFootball.getTotalCornerData(map, teamList[0], 200, 1, 0)
-  .then( function(teamData){
-    // console.log(teamData)
-    console.log(teamData.matches.length)
-  })
+  return Promise.all([Promise.resolve(teamList), checkMappingSkyTotalCorner(map, teamList)])
+})
+.then( function([teamList, map]) {
+  // Get data for all the teams
+  let promiseList = []
+  for (let teamName of teamList) {
+    console.log(teamName)
+    promiseList.push(processFootball.getTotalCornerData(map, teamName, 35, 1, 0))
+  }
+
+  return Promise.all(promiseList)
+})
+.then( function(teamDataArray){
+  for (let teamData of teamDataArray) {
+
+  }
 })

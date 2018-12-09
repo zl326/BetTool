@@ -5,6 +5,8 @@ const rp = require('request-promise-native')
 const cheerio = require('cheerio')
 const moment = require('moment-timezone')
 const csvParser = require('csv-parser')
+const csvWriter = require('csv-writer')
+const readlineSync = require('readline-sync')
 
 collate = function(teamList, betsObject) {
   return new Promise( function(resolve, reject) {
@@ -40,6 +42,54 @@ getMappingSkyTotalCorner = function() {
     .on('end', function(){
       resolve(map)
     })
+  })
+}
+
+checkMappingSkyTotalCorner = function(map, teamList) {
+  // Check that all the teams exist in the map
+  let newEntry = false
+  for (let teamName of teamList) {
+    if (!map.hasOwnProperty(teamName)) {
+      let index = readlineSync.question(`${teamName} not mapped. Enter TotalCorner index: `);
+      map[teamName] = index
+      newEntry = false
+    }
+  }
+
+  return new Promise( (resolve, reject) => {
+    if (newEntry) {
+      saveNewMappingSkyTotalCorner(map)
+      .then( function() {
+        resolve(map)
+      })
+    }
+    else resolve(map)
+  })
+}
+
+saveNewMappingSkyTotalCorner = function(map) {
+
+  return new Promise( (resolve, reject) => {
+    let mapArray = []
+    for (let teamNameOriginal of Object.keys(map).sort()) {
+      mapArray.push({
+        teamName: teamNameOriginal,
+        index: map[teamNameOriginal],
+      })
+    }
+
+    const mapWriter = csvWriter.createObjectCsvWriter({
+      path: './processBets/mappingSkyTotalCorner.csv',
+      header: ['teamName', 'index']
+    });
+    console.log(mapArray.length)
+    console.log(mapArray[mapArray.length-1])
+    console.log(mapArray[mapArray.length-2])
+    mapWriter.writeRecords(mapArray)       // returns a promise
+    .then(() => {
+      console.log(`mappingSkyTotalCorner.csv updated`);
+      resolve()
+    });
   })
 }
 
@@ -208,7 +258,11 @@ getTotalCornerData = function(map, teamName, recordsToGet, initialPageNumber, re
           }
         })
 
-        if (recordsAlreadyFound + teamData.matches.length < recordsToGet) {
+        if (recordsAlreadyFound + teamData.matches.length == recordsToGet) {
+          console.log(`${recordsToGet} matches fetched - ${teamName}`)
+          resolve(teamData)
+        }
+        else if (recordsAlreadyFound + teamData.matches.length < recordsToGet) {
           getTotalCornerData(map, teamName, recordsToGet, initialPageNumber+1, recordsAlreadyFound + teamData.matches.length)
           .then( function(teamDataExtra) {
             teamData.matches = teamData.matches.concat(teamDataExtra.matches)
@@ -216,7 +270,7 @@ getTotalCornerData = function(map, teamName, recordsToGet, initialPageNumber, re
           } )
         }
         else {
-          resolve(teamData)
+          reject('Something went wrong')
         }
       })
   })
