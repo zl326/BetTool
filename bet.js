@@ -20,6 +20,9 @@ cornersTakenInEachHalf
 })
 .then( function([teamList, map]) {
   console.log(teamList)
-  processFootball.getTotalCornerData(map, teamList[0])
-  .then( function(teamData){console.log(teamData)})
+  processFootball.getTotalCornerData(map, teamList[0], 200, 1, 0)
+  .then( function(teamData){
+    // console.log(teamData)
+    console.log(teamData.matches.length)
+  })
 })

@@ -43,21 +43,20 @@ getMappingSkyTotalCorner = function() {
   })
 }
 
-getTotalCornerData = function(map, teamName) {
+getTotalCornerData = function(map, teamName, recordsToGet, initialPageNumber, recordsAlreadyFound) {
   const options = {
-    uri: `https://www.totalcorner.com/team/view/${map[teamName]}`,
+    uri: `https://www.totalcorner.com/team/view/${map[teamName]}/page:${initialPageNumber}`,
     transform: function (body) {
       return cheerio.load(body);
     }
   };
-
-  console.log(teamName)
 
   return new Promise( function(resolve, reject) {
     rp(options)
       .then(($) => {
         let teamData = {
           teamName: teamName,
+          matches: [],
         }
 
         // Get the team name
@@ -85,6 +84,7 @@ getTotalCornerData = function(map, teamName) {
         // Loop through each match record
         $table.find('tbody tr').each( (itr, tr) => {
           let $tr = $(tr)
+          let matchData = {}
 
           // Only consider matches of status "Full"
           let matchStatus = $tr.find('td').eq(2).find('span.match_status_minutes').text()
@@ -101,8 +101,10 @@ getTotalCornerData = function(map, teamName) {
                 value = $td.find('a').text()
                 break;
               case 'Time' :
-                let timeMoment = moment($td.text(), 'MM/DD HH:mm')
-                value = timeMoment.format()
+                // let timeMoment = moment($td.text(), 'MM/DD HH:mm')
+                // value = timeMoment.format()
+                value = $td.text()
+                // console.log(value)
                 break;
               case 'Match Status' :
                 value = matchStatus
@@ -117,11 +119,13 @@ getTotalCornerData = function(map, teamName) {
                 }
                 break;
               case 'Score' :
-                console.log($td.text())
                 let scoreRegexMatch = $td.text().match(new RegExp('(\\d+) [-–] (\\d+)'))
-                value = {
-                  home: parseInt(scoreRegexMatch[1]),
-                  away: parseInt(scoreRegexMatch[2]),
+                value = {}
+                if (scoreRegexMatch) {
+                  value = {
+                    home: scoreRegexMatch[1] ? parseInt(scoreRegexMatch[1]) : null,
+                    away: scoreRegexMatch[2] ? parseInt(scoreRegexMatch[2]) : null,
+                  }
                 }
                 break;
               case 'Handicap' :
@@ -130,14 +134,17 @@ getTotalCornerData = function(map, teamName) {
               case 'Corner' :
                 let matchCornerRegexMatch = $td.find('span.span_match_corner').text().match(new RegExp('(\\d+)\\s*[-–]\\s*(\\d+)'))
                 let halfCornerRegexMatch = $td.find('span.span_half_corner').text().match(new RegExp('(\\d+)\\s*[-–]\\s*(\\d+)'))
-                value = {
-                  match: {
-                    home: parseInt(matchCornerRegexMatch[1]),
-                    away: parseInt(matchCornerRegexMatch[2]),
-                  },
-                  half: {
-                    home: parseInt(halfCornerRegexMatch[1]),
-                    away: parseInt(halfCornerRegexMatch[2]),
+                value = {}
+                if (matchCornerRegexMatch) {
+                  value.match = {
+                    home: matchCornerRegexMatch[1] ? parseInt(matchCornerRegexMatch[1]) : null,
+                    away: matchCornerRegexMatch[2] ? parseInt(matchCornerRegexMatch[2]) : null,
+                  }
+                }
+                if (halfCornerRegexMatch) {
+                  value.half = {
+                    home: halfCornerRegexMatch[1] ? parseInt(halfCornerRegexMatch[1]) : null,
+                    away: halfCornerRegexMatch[2] ? parseInt(halfCornerRegexMatch[2]) : null,
                   }
                 }
                 break;
@@ -148,30 +155,36 @@ getTotalCornerData = function(map, teamName) {
                 }
                 break;
               case 'Dangerous Attack' :
-                let matchDARegexMatch = $td.find('div.match_dangerous_attacks_div').text().match(new RegExp('(\\d+)\\s*[-–]\\s*(\\d+)'))
+                let matchDARegexMatch = $td.find('div.match_dangerous_attacks_div').text().match(new RegExp('(\\d*)\\s*[-–]\\s*(\\d*)'))
                 let halfDARegexMatch = $td.find('div.match_dangerous_attacks_half_div').text().match(new RegExp('(\\d*)\\s*[-–]\\s*(\\d*)'))
-                value= {
-                  match: {
-                    home: parseInt(matchDARegexMatch[1]),
-                    away: parseInt(matchDARegexMatch[2]),
-                  },
-                  half: {
-                    home: parseInt(halfDARegexMatch[1]),
-                    away: parseInt(halfDARegexMatch[2]),
+                value = {}
+                if (matchDARegexMatch) {
+                  value.match = {
+                    home: matchDARegexMatch[1] ? parseInt(matchDARegexMatch[1]) : null,
+                    away: matchDARegexMatch[2] ? parseInt(matchDARegexMatch[2]) : null,
+                  }
+                }
+                if (halfDARegexMatch) {
+                  value.half = {
+                    home: halfDARegexMatch[1] ? parseInt(halfDARegexMatch[1]) : null,
+                    away: halfDARegexMatch[2] ? parseInt(halfDARegexMatch[2]) : null,
                   }
                 }
                 break;
               case 'Shots' :
-                let matchShotsRegexMatch = $td.find('div.match_shoot_div').text().match(new RegExp('(\\d+)\\s*[-–]\\s*(\\d+)'))
+                let matchShotsRegexMatch = $td.find('div.match_shoot_div').text().match(new RegExp('(\\d*)\\s*[-–]\\s*(\\d*)'))
                 let halfShotsRegexMatch = $td.find('div.match_shoot_half_div').text().match(new RegExp('(\\d*)\\s*[-–]\\s*(\\d*)'))
-                value= {
-                  match: {
-                    home: parseInt(matchShotsRegexMatch[1]),
-                    away: parseInt(matchShotsRegexMatch[2]),
-                  },
-                  half: {
-                    home: parseInt(halfShotsRegexMatch[1]),
-                    away: parseInt(halfShotsRegexMatch[2]),
+                value = {}
+                if (matchShotsRegexMatch) {
+                  value.match = {
+                    home: matchShotsRegexMatch[1] ? parseInt(matchShotsRegexMatch[1]) : null,
+                    away: matchShotsRegexMatch[2] ? parseInt(matchShotsRegexMatch[2]) : null,
+                  }
+                }
+                if (halfShotsRegexMatch) {
+                  value.half = {
+                    home: halfShotsRegexMatch[1] ? parseInt(halfShotsRegexMatch[1]) : null,
+                    away: halfShotsRegexMatch[2] ? parseInt(halfShotsRegexMatch[2]) : null,
                   }
                 }
                 break;
@@ -184,14 +197,27 @@ getTotalCornerData = function(map, teamName) {
                 break;
             }
 
-            if (value) teamData[header] = value
+            if (value) matchData[header] = value
 
           })
 
-          return false
+          teamData.matches.push(matchData)
+
+          if (recordsAlreadyFound + teamData.matches.length == recordsToGet) {
+            return false
+          }
         })
 
-        resolve(teamData)
+        if (recordsAlreadyFound + teamData.matches.length < recordsToGet) {
+          getTotalCornerData(map, teamName, recordsToGet, initialPageNumber+1, recordsAlreadyFound + teamData.matches.length)
+          .then( function(teamDataExtra) {
+            teamData.matches = teamData.matches.concat(teamDataExtra.matches)
+            resolve(teamData)
+          } )
+        }
+        else {
+          resolve(teamData)
+        }
       })
   })
 }
