@@ -8,7 +8,7 @@ const csvParser = require('csv-parser')
 const csvWriter = require('csv-writer')
 const readlineSync = require('readline-sync')
 
-collate = function(teamList, betsObject) {
+collateTeams = function(teamList, betsObject) {
   return new Promise( function(resolve, reject) {
     for (let accordionName in betsObject) {
       let accordion = betsObject[accordionName]
@@ -52,7 +52,7 @@ checkMappingSkyTotalCorner = function(map, teamList) {
     if (!map.hasOwnProperty(teamName)) {
       let index = readlineSync.question(`${teamName} not mapped. Enter TotalCorner index: `);
       map[teamName] = index
-      newEntry = false
+      newEntry = true
     }
   }
 
@@ -80,7 +80,8 @@ saveNewMappingSkyTotalCorner = function(map) {
 
     const mapWriter = csvWriter.createObjectCsvWriter({
       path: './processBets/mappingSkyTotalCorner.csv',
-      header: ['teamName', 'index']
+      header: ['teamName', 'index'],
+      encoding: 'utf8'
     });
     console.log(mapArray.length)
     console.log(mapArray[mapArray.length-1])
@@ -277,7 +278,7 @@ getTotalCornerData = function(map, teamName, recordsToGet, initialPageNumber, re
 }
 
 module.exports = {
-   collate: collate,
+   collateTeams: collateTeams,
    getMappingSkyTotalCorner: getMappingSkyTotalCorner,
    getTotalCornerData: getTotalCornerData,
 }

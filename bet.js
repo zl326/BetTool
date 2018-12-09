@@ -12,7 +12,7 @@ let teamList = []
 
 cornersTakenInEachHalf
 .then( function(results) {
-  return processFootball.collate(teamList, results)
+  return processFootball.collateTeams(teamList, results)
 })
 .then( function(teamList) {
   console.log(teamList)
@@ -27,7 +27,7 @@ cornersTakenInEachHalf
   let promiseList = []
   for (let teamName of teamList) {
     console.log(teamName)
-    promiseList.push(processFootball.getTotalCornerData(map, teamName, 35, 1, 0))
+    promiseList.push(processFootball.getTotalCornerData(map, teamName, 25, 1, 0))
   }
 
   return Promise.all(promiseList)
