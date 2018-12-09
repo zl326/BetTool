@@ -1,5 +1,6 @@
 // Returns an object with all the bets available on the specified page
 
+const os = require('os')
 const fs = require('fs')
 const rp = require('request-promise-native')
 const cheerio = require('cheerio')
@@ -134,7 +135,9 @@ getBetsAccumulators = function(uri) {
 
         })
 
-        fs.writeFile('./data.json', JSON.stringify(results, null, 2));
+        if (os.type() != 'Linux') {
+          fs.writeFile('./data.json', JSON.stringify(results, null, 2), function() {});
+        }
         resolve(results)
 
       })
