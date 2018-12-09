@@ -5,4 +5,6 @@
 const getSkyBets = require('./getBets/getSkyBets.js');
 
 
-let returned = getSkyBets.getBets(`https://m.skybet.com/football/coupon/10011490`)
+let returned = getSkyBets.getBetsAccumulators(`https://m.skybet.com/football/coupon/10011490`)
+
+returned.then( (results) => {console.log(Object.keys(results))} )
