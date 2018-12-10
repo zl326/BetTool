@@ -5,6 +5,7 @@
 const getSkyBets = require('./getBets/getSkyBets.js');
 const processFootball = require('./processBets/processFootball.js');
 
+// y = 0.1 + 0.9/(cosh(x/3))
 
 let cornersTakenInEachHalf = getSkyBets.getBetsAccumulators(`https://m.skybet.com/football/coupon/10011490`)
 

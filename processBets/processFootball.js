@@ -4,9 +4,8 @@ const fs = require('fs')
 const rp = require('request-promise-native')
 const cheerio = require('cheerio')
 const moment = require('moment-timezone')
-const csvParser = require('csv-parser')
-const csvWriter = require('csv-writer')
 const readlineSync = require('readline-sync')
+const jsonfile = require('jsonfile')
 
 collateTeams = function(teamList, betsObject) {
   return new Promise( function(resolve, reject) {
@@ -29,68 +28,41 @@ collateTeams = function(teamList, betsObject) {
 
 getMappingSkyTotalCorner = function() {
   return new Promise( function(resolve, reject) {
-    let map = {}
-    fs.createReadStream('./processBets/mappingSkyTotalCorner.csv')
-    .pipe(csvParser(['team', 'index']))
-    .on('data', function(data){
-      if (!map.hasOwnProperty(data.team)) map[data.team] = parseInt(data.index)
-    })
-    .on('error', function(err){
-      console.log(err)
-      reject(err)
-    })
-    .on('end', function(){
+
+    const file = './processBets/mappingSkyTotalCorner.json'
+    jsonfile.readFile(file, function (err, map) {
+      if (err) console.error(err)
       resolve(map)
     })
   })
 }
 
-checkMappingSkyTotalCorner = function(map, teamList) {
+checkMappingSkyTotalCorner = async function(map, teamList) {
   // Check that all the teams exist in the map
-  let newEntry = false
   for (let teamName of teamList) {
     if (!map.hasOwnProperty(teamName)) {
       let index = readlineSync.question(`${teamName} not mapped. Enter TotalCorner index: `);
-      map[teamName] = index
-      newEntry = true
+      map[teamName] = parseInt(index)
+      await saveNewMappingSkyTotalCorner(map)
     }
   }
-
-  return new Promise( (resolve, reject) => {
-    if (newEntry) {
-      saveNewMappingSkyTotalCorner(map)
-      .then( function() {
-        resolve(map)
-      })
-    }
-    else resolve(map)
-  })
+  return Promise.resolve(map)
 }
 
 saveNewMappingSkyTotalCorner = function(map) {
 
   return new Promise( (resolve, reject) => {
-    let mapArray = []
-    for (let teamNameOriginal of Object.keys(map).sort()) {
-      mapArray.push({
-        teamName: teamNameOriginal,
-        index: map[teamNameOriginal],
-      })
-    }
 
-    const mapWriter = csvWriter.createObjectCsvWriter({
-      path: './processBets/mappingSkyTotalCorner.csv',
-      header: ['teamName', 'index'],
-      encoding: 'utf8'
-    });
-    console.log(mapArray.length)
-    console.log(mapArray[mapArray.length-1])
-    console.log(mapArray[mapArray.length-2])
-    mapWriter.writeRecords(mapArray)       // returns a promise
-    .then(() => {
+    // Put the map in alphabetical order for prettiness
+    let newMap = {}
+    for (let teamName of Object.keys(map).sort()) newMap[teamName] = parseInt(map[teamName])
+
+    const file = './processBets/mappingSkyTotalCorner.json'
+    fs.writeFile(file, JSON.stringify(newMap, null, 2), function(error) {
+      if (error) reject(error)
       console.log(`mappingSkyTotalCorner.csv updated`);
       resolve()
-    });
+    })
   })
 }
 
