@@ -7,7 +7,9 @@ const moment = require('moment-timezone')
 const readlineSync = require('readline-sync')
 const jsonfile = require('jsonfile')
 
-collateTeams = function(teamList, betsObject) {
+collateTeams = function(betsObject) {
+  let teamList = []
+
   return new Promise( function(resolve, reject) {
     for (let accordionName in betsObject) {
       let accordion = betsObject[accordionName]

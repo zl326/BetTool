@@ -54,6 +54,7 @@ getBetsAccumulators = function(uri) {
           let accordionTitleText = $('h2', accordion).find('span[class=accordion__title]').text()
           let dateMoment = moment(accordionTitleText, 'dddd Do MMMM YYYY')
           let accordionKey = dateMoment.format()
+          console.log('')
           console.log(accordionTitleText)
 
           // Append to results object
