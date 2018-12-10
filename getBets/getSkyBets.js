@@ -46,6 +46,9 @@ getBetsAccumulators = function(uri) {
         // Initialise results object
         let results = {}
 
+        let select = $('select.js-coupon-switcher')
+        let couponTitle = $(select).find('option').eq(0).text().match(new RegExp('\\s*(\\S[\\S\\s]*\\S)\\s*'))[1]
+
         let accordions = $('section[class=markets]').find('li')
 
         // Loop through each accordion and extract data
@@ -119,13 +122,14 @@ getBetsAccumulators = function(uri) {
                       if (!results[accordionKey][event.competition].hasOwnProperty(event.competitors)) results[accordionKey][event.competition][event.competitors] = {}
                       results[accordionKey][event.competition][event.competitors].time = event.time.format()
                       results[accordionKey][event.competition][event.competitors][colHeaders[itdGroup]] = event.competitors
+                      results[accordionKey][event.competition][event.competitors].bets = {}
                     }
                     else if ($(tdGroup).hasClass('cell--price')) {
                       let betText = $(tdGroup).find('span').text()
                       let betTextRegexMatch = betText.match(new RegExp('([\\d]+)/([\\d]+)'))
                       let betOddsDecimal = 1 + parseFloat(betTextRegexMatch[1])/parseFloat(betTextRegexMatch[2])
 
-                      results[accordionKey][event.competition][event.competitors][colHeaders[itdGroup]] = betOddsDecimal
+                      results[accordionKey][event.competition][event.competitors].bets[colHeaders[itdGroup]] = betOddsDecimal
                     }
                   })
                 })
@@ -137,10 +141,10 @@ getBetsAccumulators = function(uri) {
         })
 
         if (os.type() == 'Linux') {
-          fs.writeFile('../storage/external-1/BetTool/data.json', JSON.stringify(results, null, 2), function() {});
+          fs.writeFile(`../storage/external-1/BetTool/data_${couponTitle}.json`, JSON.stringify(results, null, 2), function() {});
         }
         else {
-          fs.writeFile('./data.json', JSON.stringify(results, null, 2), function() {});
+          fs.writeFile(`./data_${couponTitle}.json`, JSON.stringify(results, null, 2), function() {});
         }
 
         resolve(results)
