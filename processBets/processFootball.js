@@ -18,7 +18,7 @@ collateTeams = function(betsObject) {
         for (let eventName in group) {
           let event = group[eventName]
           // Parse the team names
-          let teamsRegexMatch = event.Teams.match(new RegExp('([\\S\\s]+) v ([\\S\\s]+)'))
+          let teamsRegexMatch = event.Teams.match(new RegExp('\\s*([\\S\\s]+)\\s+v\\s+([\\S\\s]+)\\s*'))
           teamList.push(teamsRegexMatch[1])
           teamList.push(teamsRegexMatch[2])
         }
@@ -62,7 +62,7 @@ saveNewMappingSkyTotalCorner = function(map) {
     const file = './processBets/mappingSkyTotalCorner.json'
     fs.writeFile(file, JSON.stringify(newMap, null, 2), function(error) {
       if (error) reject(error)
-      console.log(`mappingSkyTotalCorner.csv updated`);
+      // console.log(`mappingSkyTotalCorner.csv updated`);
       resolve()
     })
   })
