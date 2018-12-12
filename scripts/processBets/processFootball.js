@@ -109,16 +109,17 @@ async function getTotalCornerData(map, teamName, recordsToGet, initialPageNumber
     }
   };
 
+  let teamData = {
+    teamName: teamName,
+    matches: [],
+  }
+
   return new Promise( function(resolve, reject) {
     rp(options)
       .then(($) => {
-        let teamData = {
-          teamName: teamName,
-          matches: [],
-        }
 
         // Get the team name
-        teamData.team_name_TC = $('#team_view_title').find('h4').text().match(new RegExp('([\\S\\s]+) - Schedule'))[1]
+        teamData.team_name_TC = $('#team_view_title').find('h4').text().match(new RegExp('\\s*([\\S\\s]+)\\s*[-–]\\s*Schedule\\s*'))[1]
 
         let $table = $('#inplay_match_table')
 
@@ -138,6 +139,7 @@ async function getTotalCornerData(map, teamName, recordsToGet, initialPageNumber
             headerNames[ith] = $th.text()
           }
         })
+
 
         // Loop through each match record
         $table.find('tbody tr').each( (itr, tr) => {
@@ -258,13 +260,13 @@ async function getTotalCornerData(map, teamName, recordsToGet, initialPageNumber
             if (value) matchData[header] = value
 
           })
-
           teamData.matches.push(matchData)
 
           if (recordsAlreadyFound + teamData.matches.length == recordsToGet) {
             return false
           }
         })
+
 
         if (recordsAlreadyFound + teamData.matches.length == recordsToGet) {
           console.log(`${recordsToGet} matches fetched - ${teamName}`)
@@ -281,16 +283,38 @@ async function getTotalCornerData(map, teamName, recordsToGet, initialPageNumber
           reject('Something went wrong')
         }
       })
+      .catch( (err) => {
+        console.log(`${recordsAlreadyFound} matches fetched - ${teamName}`)
+        resolve(teamData)
+      })
   })
 }
 
 async function getTotalCornerDataAllTeams(teamList, map) {
   // Get data for all the teams
-  let promiseList = []
-  for (let teamName of teamList) {
-    promiseList.push(getTotalCornerData(map, teamName, 25, 1, 0))
+
+  // Set upper limit on quantity of simultaneous requests in order to not accidentally DDOS them
+  let maxSimultaneousRequests = 50
+
+  let promiseArray = []
+  let teamDataArray = []
+
+  for (let teamIndex in teamList) {
+    let teamName = teamList[teamIndex]
+
+    promiseArray.push(getTotalCornerData(map, teamName, 25, 1, 0))
+
+    // Execute the promises when the max quantity is reached
+    if (promiseArray.length == maxSimultaneousRequests || teamIndex == teamList.length-1) {
+
+      let teamDataArrayLatest = await Promise.all(promiseArray)
+      teamDataArray = teamDataArray.concat(teamDataArrayLatest)
+      console.log(`----- Fetched ${teamDataArray.length} of ${teamList.length} ----------`)
+
+      // Reset the promiseArray
+      promiseArray = []
+    }
   }
-  let teamDataArray = await Promise.all(promiseList)
 
   // Convert the array into an object with teamName as the keys
   let teamDataObj = {}

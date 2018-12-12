@@ -32,6 +32,7 @@ async function processResults(event, teamDataArray) {
 
       // Determine if bet winning criteria was satisfied in the previous X matches
       for (let matchIndex in teamDataArray[teamName].matches) {
+        matchIndex = parseInt(matchIndex)
         let match = teamDataArray[teamName].matches[matchIndex]
         let nCorners1st = match.Corner.half.home + match.Corner.half.away
         let nCorners2nd = match.Corner.match.home + match.Corner.match.away - nCorners1st
@@ -40,6 +41,14 @@ async function processResults(event, teamDataArray) {
 
         if (historicResults[betName][teamName].successArray[matchIndex]) {
           historicResults[betName][teamName].successProbability += 1.0*weightings[matchIndex]/weightingsSum
+        }
+
+        // Deal with if there are fewer matches than number of weightings
+        if (matchIndex == teamDataArray[teamName].matches.length-1 && matchIndex < weightings.length-1) {
+          // Calculate a normalising constant for correcting the current probability value
+          let weightingsSubset = weightings.slice(0,matchIndex+1)
+          let normalisation = weightings.slice(0,matchIndex+1).reduce((a, b) => a + b, 0) / weightingsSum
+          historicResults[betName][teamName].successProbability /= normalisation
         }
       }
 
@@ -63,7 +72,7 @@ async function processResults(event, teamDataArray) {
 
 async function saveResults(event, historicResults) {
 
-  console.log(`${event.configName} | ${moment(event.time).format('HH:mm')}`)
+  console.log(`${event.configName} | ${moment(event.time).format('DD/MM/YYYY HH:mm')}`)
 
   // Display results to screen
   for (let betName in event.bets) {
