@@ -6,7 +6,7 @@ const rp = require('request-promise-native')
 const cheerio = require('cheerio')
 const moment = require('moment-timezone')
 
-getUniqueColHeaders = function(originalHeaderArray) {
+function getUniqueColHeaders(originalHeaderArray) {
   let uniqueHeaderArray = []
   let uniqueHeaderObj = {}
   let uniqueHeaderCounter = {}
@@ -32,7 +32,7 @@ getUniqueColHeaders = function(originalHeaderArray) {
   return uniqueHeaderArray
 }
 
-getBetsCoupons = function(uri) {
+function getBetsCoupons(uri, configName) {
   const options = {
     uri: uri,
     transform: function (body) {
@@ -122,6 +122,7 @@ getBetsCoupons = function(uri) {
 
                       if (!results[accordionKey][event.competition].hasOwnProperty(event.competitors)) results[accordionKey][event.competition][event.competitors] = {}
                       results[accordionKey][event.competition][event.competitors].time = event.time.format()
+                      results[accordionKey][event.competition][event.competitors].configName = configName
                       results[accordionKey][event.competition][event.competitors][colHeaders[itdGroup]] = event.competitors
                       results[accordionKey][event.competition][event.competitors].bets = {}
                     }

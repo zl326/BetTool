@@ -16,20 +16,19 @@ async function processFootball(betConfigs, bets) {
     map = await checkMappingSkyTotalCorner(map, teamList)
     console.log('')
 
-    let teamDataArray = await getTotalCornerDataAllTeams(teamList, map)
+    let teamDataObj = await getTotalCornerDataAllTeams(teamList, map)
     console.log('')
 
-    evaluateData(teamDataArray, betConfigs, bets.betsList.football)
+    evaluateData(teamDataObj, betConfigs, bets.betsList.football)
   })
 }
 
-
-async function collateTeamsSingleCoupon(betsObject) {
+async function collateTeamsSingleCoupon(accordionsObject) {
   let teamList = []
 
   return new Promise( function(resolve, reject) {
-    for (let accordionName in betsObject) {
-      let accordion = betsObject[accordionName]
+    for (let accordionName in accordionsObject) {
+      let accordion = accordionsObject[accordionName]
       for (let groupName in accordion) {
         let group = accordion[groupName]
         for (let eventName in group) {
@@ -45,9 +44,11 @@ async function collateTeamsSingleCoupon(betsObject) {
   })
 }
 
-async function collateFootballTeamsAllCoupons(betsList) {
+async function collateFootballTeamsAllCoupons(betsListFootball) {
   let promiseArray = []
-  betsList.map( (result) => {promiseArray.push(collateTeamsSingleCoupon(result))})
+  for (let configName in betsListFootball) {
+    promiseArray.push(collateTeamsSingleCoupon(betsListFootball[configName]))
+  }
   let teamListArray = await Promise.all(promiseArray)
 
   // Concatenate the team list to make one single list of all teams
@@ -289,13 +290,45 @@ async function getTotalCornerDataAllTeams(teamList, map) {
   for (let teamName of teamList) {
     promiseList.push(getTotalCornerData(map, teamName, 25, 1, 0))
   }
-  return Promise.all(promiseList)
+  let teamDataArray = await Promise.all(promiseList)
+
+  // Convert the array into an object with teamName as the keys
+  let teamDataObj = {}
+  for (let teamData of teamDataArray) {
+    teamDataObj[teamData.teamName] = teamData
+  }
+
+  return teamDataObj
 }
 
-async function evaluateData(teamDataArray, betConfigs, betsList) {
-  for (let teamData of teamDataArray) {
+async function evaluateData(teamDataArray, betConfigs, betsListFootball) {
 
+  // console.log(teamDataArray)
+  // console.log(betConfigs)
+
+  for (let configName in betsListFootball) {
+    let accordionList = betsListFootball[configName]
+
+    for (let accordionName in accordionList) {
+      let accordion = accordionList[accordionName]
+
+      for (let competitionName in accordion) {
+        let competition = accordion[competitionName]
+
+        for (let eventName in competition) {
+          let event = competition[eventName]
+
+          // Deal with this bet depending on what its config is
+          console.log('')
+          console.log(eventName)
+          betConfigs[configName].processResults(event, teamDataArray)
+
+        }
+      }
+    }
   }
+
+
 
   return new Promise( function(resolve, reject) {
     resolve()
@@ -304,11 +337,4 @@ async function evaluateData(teamDataArray, betConfigs, betsList) {
 
 module.exports = {
   processFootball: processFootball,
-  collateTeamsSingleCoupon: collateTeamsSingleCoupon,
-  collateFootballTeamsAllCoupons: collateFootballTeamsAllCoupons,
-  getMappingSkyTotalCorner: getMappingSkyTotalCorner,
-  checkMappingSkyTotalCorner: checkMappingSkyTotalCorner,
-  getTotalCornerData: getTotalCornerData,
-  getTotalCornerDataAllTeams: getTotalCornerDataAllTeams,
-  evaluateData: evaluateData,
 }
