@@ -63,7 +63,7 @@ async function processResults(event, teamDataArray) {
 
 async function saveResults(event, historicResults) {
 
-  console.log(`${event.configName}`)
+  console.log(`${event.configName} | ${moment(event.time).format('HH:mm')}`)
 
   // Display results to screen
   for (let betName in event.bets) {
@@ -71,10 +71,9 @@ async function saveResults(event, historicResults) {
     let outputText = ''
     outputText += `${betName}`
     outputText += ` | ${historicResults[betName].average.goodBet ? 1 : 0}`
-    outputText += ` | Strength ${historicResults[betName].average.betStrength.toFixed(3)}`
+    outputText += ` | ${historicResults[betName].average.betStrength.toFixed(3)}`
     outputText += ` | fairOdds ${historicResults[betName].average.fairOdds.toFixed(3)}`
     outputText += ` | SkyBet ${event.bets[betName].toFixed(3)}`
-    outputText += ` | ${moment(event.time).format('HH:mm')}`
     console.log(outputText)
   }
 
