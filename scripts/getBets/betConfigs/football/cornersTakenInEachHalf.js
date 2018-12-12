@@ -3,8 +3,12 @@ const fs = require('fs')
 const moment = require('moment-timezone')
 
 
-parseResult = function(resultObj) {
+function parseResults(resultObj) {
   console.log(resultObj)
+}
+
+function parseBets(betsList) {
+  console.log(betsList)
 }
 
 // y = 0.1 + 0.9/(cosh(x/3))
@@ -12,5 +16,7 @@ parseResult = function(resultObj) {
 
 module.exports = {
    uri: `https://m.skybet.com/football/coupon/10011490`,
-   parseResult: parseResult
+   parseResults: parseResults,
+   parseBets: parseBets,
+   category: 'football',
 }

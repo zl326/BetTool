@@ -1,4 +1,4 @@
-data_*.json
+temp/
 
 # Logs
 logs

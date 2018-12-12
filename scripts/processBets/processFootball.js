@@ -6,8 +6,25 @@ const cheerio = require('cheerio')
 const moment = require('moment-timezone')
 const readlineSync = require('readline-sync')
 const jsonfile = require('jsonfile')
+const unique = require('array-unique');
 
-collateTeams = function(betsObject) {
+async function processFootball(betConfigs, bets) {
+  Promise.all([collateFootballTeamsAllCoupons(bets.betsList.football),
+                getMappingSkyTotalCorner()])
+  .then( async function([teamList, map]) {
+
+    map = await checkMappingSkyTotalCorner(map, teamList)
+    console.log('')
+
+    let teamDataArray = await getTotalCornerDataAllTeams(teamList, map)
+    console.log('')
+
+    evaluateData(teamDataArray, betConfigs, bets.betsList.football)
+  })
+}
+
+
+async function collateTeamsSingleCoupon(betsObject) {
   let teamList = []
 
   return new Promise( function(resolve, reject) {
@@ -28,10 +45,25 @@ collateTeams = function(betsObject) {
   })
 }
 
-getMappingSkyTotalCorner = function() {
+async function collateFootballTeamsAllCoupons(betsList) {
+  let promiseArray = []
+  betsList.map( (result) => {promiseArray.push(collateTeamsSingleCoupon(result))})
+  let teamListArray = await Promise.all(promiseArray)
+
+  // Concatenate the team list to make one single list of all teams
+  let teamList = []
+  for (let teams of teamListArray) {
+    teamList = unique(teamList.concat(teams)).sort()
+  }
+  console.log(`Full Team List - ${teamList.length}`)
+  console.log(teamList)
+  return Promise.resolve(teamList)
+}
+
+async function getMappingSkyTotalCorner() {
   return new Promise( function(resolve, reject) {
 
-    const file = './processBets/mappingSkyTotalCorner.json'
+    const file = './scripts/processBets/mappingSkyTotalCorner.json'
     jsonfile.readFile(file, function (err, map) {
       if (err) console.error(err)
       resolve(map)
@@ -39,7 +71,7 @@ getMappingSkyTotalCorner = function() {
   })
 }
 
-checkMappingSkyTotalCorner = async function(map, teamList) {
+async function checkMappingSkyTotalCorner(map, teamList) {
   // Check that all the teams exist in the map
   for (let teamName of teamList) {
     if (!map.hasOwnProperty(teamName)) {
@@ -51,7 +83,7 @@ checkMappingSkyTotalCorner = async function(map, teamList) {
   return Promise.resolve(map)
 }
 
-saveNewMappingSkyTotalCorner = function(map) {
+async function saveNewMappingSkyTotalCorner(map) {
 
   return new Promise( (resolve, reject) => {
 
@@ -59,7 +91,7 @@ saveNewMappingSkyTotalCorner = function(map) {
     let newMap = {}
     for (let teamName of Object.keys(map).sort()) newMap[teamName] = parseInt(map[teamName])
 
-    const file = './processBets/mappingSkyTotalCorner.json'
+    const file = './scripts/processBets/mappingSkyTotalCorner.json'
     fs.writeFile(file, JSON.stringify(newMap, null, 2), function(error) {
       if (error) reject(error)
       // console.log(`mappingSkyTotalCorner.csv updated`);
@@ -68,7 +100,7 @@ saveNewMappingSkyTotalCorner = function(map) {
   })
 }
 
-getTotalCornerData = function(map, teamName, recordsToGet, initialPageNumber, recordsAlreadyFound) {
+async function getTotalCornerData(map, teamName, recordsToGet, initialPageNumber, recordsAlreadyFound) {
   const options = {
     uri: `https://www.totalcorner.com/team/view/${map[teamName]}/page:${initialPageNumber}`,
     transform: function (body) {
@@ -251,8 +283,32 @@ getTotalCornerData = function(map, teamName, recordsToGet, initialPageNumber, re
   })
 }
 
+async function getTotalCornerDataAllTeams(teamList, map) {
+  // Get data for all the teams
+  let promiseList = []
+  for (let teamName of teamList) {
+    promiseList.push(getTotalCornerData(map, teamName, 25, 1, 0))
+  }
+  return Promise.all(promiseList)
+}
+
+async function evaluateData(teamDataArray, betConfigs, betsList) {
+  for (let teamData of teamDataArray) {
+
+  }
+
+  return new Promise( function(resolve, reject) {
+    resolve()
+  })
+}
+
 module.exports = {
-   collateTeams: collateTeams,
-   getMappingSkyTotalCorner: getMappingSkyTotalCorner,
-   getTotalCornerData: getTotalCornerData,
+  processFootball: processFootball,
+  collateTeamsSingleCoupon: collateTeamsSingleCoupon,
+  collateFootballTeamsAllCoupons: collateFootballTeamsAllCoupons,
+  getMappingSkyTotalCorner: getMappingSkyTotalCorner,
+  checkMappingSkyTotalCorner: checkMappingSkyTotalCorner,
+  getTotalCornerData: getTotalCornerData,
+  getTotalCornerDataAllTeams: getTotalCornerDataAllTeams,
+  evaluateData: evaluateData,
 }

@@ -32,7 +32,7 @@ getUniqueColHeaders = function(originalHeaderArray) {
   return uniqueHeaderArray
 }
 
-getBetsAccumulators = function(uri) {
+getBetsCoupons = function(uri) {
   const options = {
     uri: uri,
     transform: function (body) {
@@ -118,6 +118,7 @@ getBetsAccumulators = function(uri) {
                     // Append data to results according to the type of td it is
                     if ($(tdGroup).hasClass('cell--link')) {
                       event.competitors = $(tdGroup).find('b.cell-text__line').text()
+                      console.log(event.competitors)
 
                       if (!results[accordionKey][event.competition].hasOwnProperty(event.competitors)) results[accordionKey][event.competition][event.competitors] = {}
                       results[accordionKey][event.competition][event.competitors].time = event.time.format()
@@ -141,10 +142,10 @@ getBetsAccumulators = function(uri) {
         })
 
         if (os.type() == 'Linux') {
-          fs.writeFile(`../storage/external-1/BetTool/data_${couponTitle}.json`, JSON.stringify(results, null, 2), function() {});
+          // fs.writeFile(`../storage/external-1/BetTool/data_${couponTitle}.json`, JSON.stringify(results, null, 2), function() {});
         }
         else {
-          fs.writeFile(`./data_${couponTitle}.json`, JSON.stringify(results, null, 2), function() {});
+          fs.writeFile(`./temp/data_${couponTitle}.json`, JSON.stringify(results, null, 2), function() {});
         }
 
         resolve(results)
@@ -158,5 +159,5 @@ getBetsAccumulators = function(uri) {
 }
 
 module.exports = {
-   getBetsAccumulators: getBetsAccumulators
+   getBetsCoupons: getBetsCoupons
 }

@@ -11,6 +11,7 @@ parseResult = function(resultObj) {
 
 
 module.exports = {
-   uri: `https://m.skybet.com/football/coupon/10011480`,
-   parseResult: parseResult
+   uri: `https://m.skybet.com/football/coupon/10011434`,
+   parseResult: parseResult,
+   category: 'football',
 }
