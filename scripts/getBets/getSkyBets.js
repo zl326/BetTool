@@ -100,7 +100,7 @@ function getBetsCoupons(uri, configName, programOptions) {
                 console.log(groupText)
 
                 // Match the group header text, e.g. "Premier League - 13:30"
-                let groupTextRegexMatch = groupText.match(new RegExp('([\\S\\s]+) [-–] ([\\d]{2}):([\\d]{2})'))
+                let groupTextRegexMatch = groupText.match(new RegExp('\\s*([\\S\\s]+)\\s*[-–]\\s*([\\d]{2}):([\\d]{2})\\s*'))
                 event.competition = groupTextRegexMatch[1]
                 event.hours = groupTextRegexMatch[2]
                 event.minutes = groupTextRegexMatch[3]
@@ -124,7 +124,7 @@ function getBetsCoupons(uri, configName, programOptions) {
 
                     // Append data to results according to the type of td it is
                     if ($(tdGroup).hasClass('cell--link')) {
-                      event.competitors = $(tdGroup).find('b.cell-text__line').text()
+                      event.competitors = $(tdGroup).find('b.cell-text__line').text().match(new RegExp('\\s*([\\S\\s]*)\\s*'))[1]
                       console.log(event.competitors)
 
                       if (!results[accordionKey][event.competition].hasOwnProperty(event.competitors)) results[accordionKey][event.competition][event.competitors] = {}

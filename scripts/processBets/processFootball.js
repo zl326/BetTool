@@ -19,7 +19,9 @@ async function processFootball(betConfigs, bets) {
     let teamDataObj = await getTotalCornerDataAllTeams(teamList, map)
     console.log('')
 
-    evaluateData(teamDataObj, betConfigs, bets.betsList.football)
+    let collatedProcessedEventsArray = await evaluateData(teamDataObj, betConfigs, bets.betsList.football)
+
+    displayResults(collatedProcessedEventsArray, betConfigs)
   })
 }
 
@@ -327,8 +329,7 @@ async function getTotalCornerDataAllTeams(teamList, map) {
 
 async function evaluateData(teamDataArray, betConfigs, betsListFootball) {
 
-  // console.log(teamDataArray)
-  // console.log(betConfigs)
+  let processBetPromiseArray = []
 
   for (let configName in betsListFootball) {
     let accordionList = betsListFootball[configName]
@@ -343,20 +344,29 @@ async function evaluateData(teamDataArray, betConfigs, betsListFootball) {
           let event = competition[eventName]
 
           // Deal with this bet depending on what its config is
-          console.log('')
-          console.log(eventName)
-          betConfigs[configName].processResults(event, teamDataArray)
-
+          processBetPromiseArray.push(betConfigs[configName].processResults(event, teamDataArray))
         }
       }
     }
   }
 
+  return Promise.all(processBetPromiseArray)
+}
 
+async function displayResults(collatedProcessedEventsArray, betConfigs) {
+  // Sort by config
+  let collatedProcessedEvents = {}
+  for (let event of collatedProcessedEventsArray) {
+    if (!collatedProcessedEvents.hasOwnProperty(event.configName)) collatedProcessedEvents[event.configName] = []
+    collatedProcessedEvents[event.configName].push(event)
+  }
 
-  return new Promise( function(resolve, reject) {
-    resolve()
-  })
+  // Display the findings
+  for (let configName in collatedProcessedEvents) {
+    betConfigs[configName].displayResults(collatedProcessedEvents[configName])
+  }
+
+  return
 }
 
 module.exports = {

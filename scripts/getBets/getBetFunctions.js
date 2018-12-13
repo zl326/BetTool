@@ -34,7 +34,7 @@ async function getBets(betConfigs, programOptions) {
 async function getBetConfigs(commander) {
   // Get bet configs
   let betConfigsArray = []
-  console.log('\nBet Options:')
+  console.log('\nBet Options Chosen:')
   if (commander.all || commander.cornersTakenInEachHalf || commander.football) {
     console.log('Corners Taken in Each Half')
     betConfigsArray.push(require('./betConfigs/football/cornersTakenInEachHalf.js'))

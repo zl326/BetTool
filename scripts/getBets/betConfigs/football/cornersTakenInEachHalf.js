@@ -1,4 +1,6 @@
 const moment = require('moment-timezone')
+const columnify = require('columnify')
+const colors = require('colors')
 
 async function processResults(event, teamDataArray) {
   // console.log(event)
@@ -67,30 +69,81 @@ async function processResults(event, teamDataArray) {
 
   saveResults(event, historicResults)
 
-  return
+  event.historicResults = historicResults
+  return event
+}
+
+async function displayResults(processedEventsArray) {
+  // Continue only if there is at least one bet to look at
+  if (processedEventsArray.length <= 0) return
+
+  // Sort chronologically
+  processedEventsArray = processedEventsArray.sort( (a,b) => {return moment(a.time).isBefore(moment(b.time)) ? -1 : 1} )
+
+  // Produce the columns for use with columnify
+  for (let betName in processedEventsArray[0].bets) {
+    let columnifyDataGood = []
+    let columnifyDataBad = []
+
+    for (let event of processedEventsArray) {
+      let columnifyData = {
+        bet: betName,
+        goodBet: event.historicResults[betName].average.goodBet,
+        strength: event.historicResults[betName].average.betStrength,
+        fairOdds: event.historicResults[betName].average.fairOdds,
+        SkyBet: event.bets[betName],
+        teams: event.Teams,
+        time: moment(event.time).format('HH:mm DD/MM'),
+      }
+
+      columnifyData.goodBet ? columnifyDataGood.push(columnifyData) : columnifyDataBad.push(columnifyData)
+    }
+
+    let columnifyOptions = {
+      columnSplitter: ' | ',
+      headingTransform: function(heading) {
+        return heading.inverse
+      },
+      config: {
+        goodBet: {
+          dataTransform: (data) => {return data == 'true' ? data.green.inverse : data.red},
+          align: 'right',
+        },
+        strength: {
+          dataTransform: (data) => {return parseFloat(data).toFixed(3)},
+          align: 'right',
+        },
+        fairOdds: {
+          dataTransform: (data) => {return parseFloat(data).toFixed(3)},
+          align: 'right',
+        },
+        SkyBet: {
+          dataTransform: (data) => {return parseFloat(data).toFixed(2)},
+          align: 'right',
+        },
+      }
+    }
+
+    console.log(`${processedEventsArray[0].configName} ${betName}`.bgCyan.white)
+    console.log(columnify(columnifyDataBad.concat(columnifyDataGood), columnifyOptions))
+    console.log(``)
+
+  }
+
+
 }
 
 async function saveResults(event, historicResults) {
 
-  console.log(`${event.configName} | ${moment(event.time).format('DD/MM/YYYY HH:mm')}`)
-
-  // Display results to screen
   for (let betName in event.bets) {
 
-    let outputText = ''
-    outputText += `${betName}`
-    outputText += ` | ${historicResults[betName].average.goodBet ? 1 : 0}`
-    outputText += ` | ${historicResults[betName].average.betStrength.toFixed(3)}`
-    outputText += ` | fairOdds ${historicResults[betName].average.fairOdds.toFixed(2)}`
-    outputText += ` | SkyBet ${event.bets[betName].toFixed(3)}`
-    console.log(outputText)
   }
-
 }
 
 module.exports = {
   uri: `https://m.skybet.com/football/coupon/10011490`,
   processResults: processResults,
+  displayResults: displayResults,
   category: 'football',
   configName: 'cornersTakenInEachHalf'
 }
