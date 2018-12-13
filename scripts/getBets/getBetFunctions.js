@@ -34,21 +34,21 @@ async function getBets(betConfigs, programOptions) {
 async function getBetConfigs(commander) {
   // Get bet configs
   let betConfigsArray = []
-  console.log('\nOptions:')
+  console.log('\nBet Options:')
   if (commander.all || commander.cornersTakenInEachHalf || commander.football) {
-    console.log('Chosen - Corners Taken in Each Half')
+    console.log('Corners Taken in Each Half')
     betConfigsArray.push(require('./betConfigs/football/cornersTakenInEachHalf.js'))
   }
   if (commander.all || commander.totalOverBookingPoints || commander.football) {
-    console.log('Chosen - Total Over Booking Points')
+    console.log('Total Over Booking Points')
     betConfigsArray.push(require('./betConfigs/football/totalOverBookingPoints.js'))
   }
   if (commander.all || commander.premierLeague || commander.football) {
-    console.log('Chosen - Premier League')
+    console.log('Premier League')
     betConfigsArray.push(require('./betConfigs/football/premierLeague.js'))
   }
   if (commander.dummy) {
-    console.log('Chosen - Dummy')
+    console.log('Dummy')
     betConfigsArray.push(require('./betConfigs/football/dummy.js'))
   }
 
