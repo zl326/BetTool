@@ -81,7 +81,7 @@ async function saveResults(event, historicResults) {
     outputText += `${betName}`
     outputText += ` | ${historicResults[betName].average.goodBet ? 1 : 0}`
     outputText += ` | ${historicResults[betName].average.betStrength.toFixed(3)}`
-    outputText += ` | fairOdds ${historicResults[betName].average.fairOdds.toFixed(3)}`
+    outputText += ` | fairOdds ${historicResults[betName].average.fairOdds.toFixed(2)}`
     outputText += ` | SkyBet ${event.bets[betName].toFixed(3)}`
     console.log(outputText)
   }

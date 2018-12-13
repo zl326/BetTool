@@ -32,7 +32,7 @@ function getUniqueColHeaders(originalHeaderArray) {
   return uniqueHeaderArray
 }
 
-function getBetsCoupons(uri, configName) {
+function getBetsCoupons(uri, configName, programOptions) {
   const options = {
     uri: uri,
     transform: function (body) {
@@ -56,6 +56,13 @@ function getBetsCoupons(uri, configName) {
           // Each accordion represents bets on a given date. Extract the date information
           let accordionTitleText = $('h2', accordion).find('span[class=accordion__title]').text()
           let dateMoment = moment(accordionTitleText, 'dddd Do MMMM YYYY')
+
+          // If user has specified the --day option, return only the date of interest
+          if (programOptions.hasOwnProperty('day')) {
+            let dateMomentTarget = moment().startOf('day').add(programOptions.day.daysAhead, 'days')
+            if (!dateMomentTarget.isSame(dateMoment)) return true;
+          }
+
           let accordionKey = dateMoment.format()
           console.log('')
           console.log(accordionTitleText)

@@ -1,7 +1,7 @@
 
 const getSkyBets = require('./getSkyBets.js');
 
-async function getBets(betConfigs) {
+async function getBets(betConfigs, programOptions) {
   // Get the bets for each config
   let betsList = {}
   let betsPromiseArray = []
@@ -12,7 +12,7 @@ async function getBets(betConfigs) {
     if (!betsList.hasOwnProperty(betConfig.category)) betsList[betConfig.category] = {}
     if (categories.indexOf(betConfig.category) == -1) categories.push(betConfig.category)
 
-    if (betConfig.category == 'football') betsPromiseArray.push(getSkyBets.getBetsCoupons(betConfig.uri, betConfig.configName))
+    if (betConfig.category == 'football') betsPromiseArray.push(getSkyBets.getBetsCoupons(betConfig.uri, betConfig.configName, programOptions))
   }
 
   let betsArray = await Promise.all(betsPromiseArray)
@@ -31,19 +31,19 @@ async function getBets(betConfigs) {
   return bets
 }
 
-async function getBetConfigs(commander, process) {
+async function getBetConfigs(commander) {
   // Get bet configs
   let betConfigsArray = []
   console.log('\nOptions:')
-  if (commander.all || commander.cornersTakenInEachHalf || process.argv.length <= 2) { // default if no arguments applied
+  if (commander.all || commander.cornersTakenInEachHalf || commander.football) {
     console.log('Chosen - Corners Taken in Each Half')
     betConfigsArray.push(require('./betConfigs/football/cornersTakenInEachHalf.js'))
   }
-  if (commander.all || commander.totalOverBookingPoints) {
+  if (commander.all || commander.totalOverBookingPoints || commander.football) {
     console.log('Chosen - Total Over Booking Points')
     betConfigsArray.push(require('./betConfigs/football/totalOverBookingPoints.js'))
   }
-  if (commander.all || commander.premierLeague) {
+  if (commander.all || commander.premierLeague || commander.football) {
     console.log('Chosen - Premier League')
     betConfigsArray.push(require('./betConfigs/football/premierLeague.js'))
   }
