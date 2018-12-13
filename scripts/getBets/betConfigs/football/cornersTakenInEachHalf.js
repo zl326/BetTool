@@ -1,6 +1,7 @@
 const moment = require('moment-timezone')
 const columnify = require('columnify')
 const colors = require('colors')
+const jsonfile = require('jsonfile')
 
 async function processResults(event, teamDataArray) {
   // console.log(event)
@@ -65,11 +66,9 @@ async function processResults(event, teamDataArray) {
 
   } // End of loop through bets
 
-  // console.log(historicResults)
-
-  saveResults(event, historicResults)
-
   event.historicResults = historicResults
+  saveResults(event)
+
   return event
 }
 
@@ -87,7 +86,6 @@ async function displayResults(processedEventsArray) {
 
     for (let event of processedEventsArray) {
       let columnifyData = {
-        bet: betName,
         goodBet: event.historicResults[betName].average.goodBet,
         strength: event.historicResults[betName].average.betStrength,
         fairOdds: event.historicResults[betName].average.fairOdds,
@@ -124,7 +122,7 @@ async function displayResults(processedEventsArray) {
       }
     }
 
-    console.log(`${processedEventsArray[0].configName} ${betName}`.bgCyan.white)
+    console.log(`${processedEventsArray[0].configName} ${betName}`.yellow.inverse)
     console.log(columnify(columnifyDataBad.concat(columnifyDataGood), columnifyOptions))
     console.log(``)
 
@@ -133,11 +131,8 @@ async function displayResults(processedEventsArray) {
 
 }
 
-async function saveResults(event, historicResults) {
-
-  for (let betName in event.bets) {
-
-  }
+async function saveResults(event) {
+  
 }
 
 module.exports = {
