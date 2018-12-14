@@ -1,7 +1,6 @@
 const moment = require('moment-timezone')
 const columnify = require('columnify')
 const colors = require('colors')
-const jsonfile = require('jsonfile')
 
 async function processResults(event, teamDataArray) {
   // console.log(event)
@@ -108,7 +107,12 @@ async function displayResults(processedEventsArray) {
           align: 'right',
         },
         strength: {
-          dataTransform: (data) => {return parseFloat(data).toFixed(3)},
+          dataTransform: (data) => {
+            let decPlaces = 3
+            if (parseFloat(data) > 1.1) return parseFloat(data).toFixed(decPlaces).green.bold
+            else if (parseFloat(data) >= 1.0) return parseFloat(data).toFixed(decPlaces)
+            else return parseFloat(data).toFixed(decPlaces).gray
+          },
           align: 'right',
         },
         fairOdds: {
@@ -132,7 +136,7 @@ async function displayResults(processedEventsArray) {
 }
 
 async function saveResults(event) {
-  
+
 }
 
 module.exports = {

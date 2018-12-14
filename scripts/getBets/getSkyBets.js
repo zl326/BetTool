@@ -153,7 +153,7 @@ function getBetsCoupons(uri, configName, programOptions) {
           // fs.writeFile(`../storage/external-1/BetTool/data_${couponTitle}.json`, JSON.stringify(results, null, 2), function() {});
         }
         else {
-          fs.writeFile(`./temp/data_${couponTitle}.json`, JSON.stringify(results, null, 2), function() {});
+          // fs.writeFile(`./temp/data_${couponTitle}.json`, JSON.stringify(results, null, 2), function() {});
         }
 
         resolve(results)

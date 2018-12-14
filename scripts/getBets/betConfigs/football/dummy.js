@@ -1,18 +1,19 @@
+const moment = require('moment-timezone')
+const columnify = require('columnify')
+const colors = require('colors')
 
-function parseResults(resultObj) {
-  console.log(resultObj)
+async function processResults(event, teamDataArray) {
+  return
 }
 
-function parseBets(betsList) {
-  console.log(betsList)
+async function displayResults(processedEventsArray) {
+  return
 }
-
-// y = 0.1 + 0.9/(cosh(x/3))
-
 
 module.exports = {
-  uri: `https://m.skybet.com/football/coupon/10011458`,
-  parseResults: parseResults,
-  parseBets: parseBets,
+  uri: `https://m.skybet.com/football/coupon/10011490`,
+  processResults: processResults,
+  displayResults: displayResults,
   category: 'football',
+  configName: 'dummy'
 }
