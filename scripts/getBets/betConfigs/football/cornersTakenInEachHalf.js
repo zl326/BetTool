@@ -89,7 +89,7 @@ async function displayResults(processedEventsArray) {
   processedEventsArray = processedEventsArray.sort(sortByTime)
 
   // Produce the columns for use with columnify
-  for (let betName in processedEventsArray[0].bets) {
+  for (let betName of Object.keys(processedEventsArray[0].bets).reverse()) {
     let columnifyDataGood = []
     let columnifyDataBad = []
 
