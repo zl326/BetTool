@@ -333,7 +333,7 @@ async function getTotalCornerDataAllTeams(teamList, map) {
   for (let teamIndex in teamList) {
     let teamName = teamList[teamIndex]
 
-    promiseArray.push(getTotalCornerData(map, teamName, 500, 1, 0, undefined))
+    promiseArray.push(getTotalCornerData(map, teamName, 25, 1, 0, undefined))
 
     // Execute the promises when the max quantity is reached
     if (promiseArray.length == maxSimultaneousRequests || teamIndex == teamList.length-1) {
