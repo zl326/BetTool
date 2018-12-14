@@ -20,6 +20,8 @@ async function processResults(event, teamDataArray) {
 
   // Get the names of the two teams
   let teamsRegexMatch = event.Teams.match(new RegExp('\\s*([\\S\\s]+)\\s+v\\s+([\\S\\s]+)\\s*'))
+  event.teamHome = teamsRegexMatch[1]
+  event.teamAway = teamsRegexMatch[2]
 
   // Loop through each bet
   for (let betName in event.bets) {
@@ -99,7 +101,9 @@ async function displayResults(processedEventsArray) {
         strength: event.historicResults[betName].average.betStrength,
         fairOdds: event.historicResults[betName].average.fairOdds,
         SkyBet: event.bets[betName],
-        teams: event.Teams,
+        // teams: event.Teams,
+        home: event.teamHome,
+        away: event.teamAway,
         time: moment(event.time).format('HH:mm DD/MM'),
       }
 
@@ -132,6 +136,16 @@ async function displayResults(processedEventsArray) {
         SkyBet: {
           dataTransform: (data) => {return parseFloat(data).toFixed(2)},
           align: 'right',
+        },
+        home: {
+          maxWidth: 25,
+          truncate: true,
+          align: 'right',
+        },
+        away: {
+          maxWidth: 25,
+          truncate: true,
+          align: 'left',
         },
       }
     }

@@ -7,6 +7,8 @@ const moment = require('moment-timezone')
 const readlineSync = require('readline-sync')
 const jsonfile = require('jsonfile')
 const unique = require('array-unique');
+const columnify = require('columnify')
+const colors = require('colors')
 
 async function processFootball(betConfigs, bets) {
   Promise.all([collateFootballTeamsAllCoupons(bets.betsList.football),
@@ -103,7 +105,7 @@ async function saveNewMappingSkyTotalCorner(map) {
   })
 }
 
-async function getTotalCornerData(map, teamName, recordsToGet, initialPageNumber, recordsAlreadyFound) {
+async function getTotalCornerData(map, teamName, recordsToGet, initialPageNumber, recordsAlreadyFound, teamName_TC) {
   const options = {
     uri: `https://www.totalcorner.com/team/view/${map[teamName]}/page:${initialPageNumber}`,
     transform: function (body) {
@@ -116,12 +118,29 @@ async function getTotalCornerData(map, teamName, recordsToGet, initialPageNumber
     matches: [],
   }
 
+  if (typeof teamName_TC == 'string') teamData.teamName_TC = teamName_TC
+
+  let columnifyOptions = {
+    showHeaders: false,
+    columnSplitter: ' | ',
+    config: {
+      teamNameSkyBet : {
+        minWidth: 25,
+        maxWidth: 25,
+      },
+      teamNameTC : {
+        minWidth: 25,
+        maxWidth: 25,
+      }
+    }
+  }
+
   return new Promise( function(resolve, reject) {
     rp(options)
       .then(($) => {
 
         // Get the team name
-        teamData.team_name_TC = $('#team_view_title').find('h4').text().match(new RegExp('\\s*([\\S\\s]+)\\s*[-–]\\s*Schedule\\s*'))[1]
+        teamData.teamName_TC = $('#team_view_title').find('h4').text().match(new RegExp('\\s*([\\S\\s]+)\\s*[-–]\\s*Schedule\\s*'))[1]
 
         let $table = $('#inplay_match_table')
 
@@ -271,11 +290,16 @@ async function getTotalCornerData(map, teamName, recordsToGet, initialPageNumber
 
 
         if (recordsAlreadyFound + teamData.matches.length == recordsToGet) {
-          console.log(`${recordsToGet} matches fetched - ${teamName}`)
+          let columnifyData = [{
+            message: `${recordsToGet} matches fetched`,
+            teamNameSkyBet: teamData.teamName,
+            teamNameTC: teamData.teamName_TC,
+          }]
+          console.log(columnify(columnifyData, columnifyOptions))
           resolve(teamData)
         }
         else if (recordsAlreadyFound + teamData.matches.length < recordsToGet) {
-          getTotalCornerData(map, teamName, recordsToGet, initialPageNumber+1, recordsAlreadyFound + teamData.matches.length)
+          getTotalCornerData(map, teamName, recordsToGet, initialPageNumber+1, recordsAlreadyFound + teamData.matches.length, teamData.teamName_TC)
           .then( function(teamDataExtra) {
             teamData.matches = teamData.matches.concat(teamDataExtra.matches)
             resolve(teamData)
@@ -286,7 +310,12 @@ async function getTotalCornerData(map, teamName, recordsToGet, initialPageNumber
         }
       })
       .catch( (err) => {
-        console.log(`${recordsAlreadyFound} matches fetched - ${teamName}`)
+        let columnifyData = [{
+          message: `${recordsAlreadyFound} matches fetched`,
+          teamNameSkyBet: teamData.teamName,
+          teamNameTC: teamData.teamName_TC,
+        }]
+        console.log(columnify(columnifyData, columnifyOptions))
         resolve(teamData)
       })
   })
@@ -296,7 +325,7 @@ async function getTotalCornerDataAllTeams(teamList, map) {
   // Get data for all the teams
 
   // Set upper limit on quantity of simultaneous requests in order to not accidentally DDOS them
-  let maxSimultaneousRequests = 50
+  let maxSimultaneousRequests = 25
 
   let promiseArray = []
   let teamDataArray = []
@@ -304,14 +333,14 @@ async function getTotalCornerDataAllTeams(teamList, map) {
   for (let teamIndex in teamList) {
     let teamName = teamList[teamIndex]
 
-    promiseArray.push(getTotalCornerData(map, teamName, 25, 1, 0))
+    promiseArray.push(getTotalCornerData(map, teamName, 500, 1, 0, undefined))
 
     // Execute the promises when the max quantity is reached
     if (promiseArray.length == maxSimultaneousRequests || teamIndex == teamList.length-1) {
 
       let teamDataArrayLatest = await Promise.all(promiseArray)
       teamDataArray = teamDataArray.concat(teamDataArrayLatest)
-      console.log(`----- Fetched ${teamDataArray.length} of ${teamList.length} ----------`)
+      console.log(`---------- Fetched ${teamDataArray.length} of ${teamList.length} ----------`.inverse)
 
       // Reset the promiseArray
       promiseArray = []
