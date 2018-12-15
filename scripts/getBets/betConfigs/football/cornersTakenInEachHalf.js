@@ -4,7 +4,7 @@ const colors = require('colors')
 
 const dataProcFunctions = require('../../../general/dataProcFunctions.js');
 
-async function processResults(event, teamDataArray) {
+async function processResults(event, teamDataObj) {
   // console.log(event)
 
   let historicResults = {}
@@ -36,9 +36,9 @@ async function processResults(event, teamDataArray) {
       historicResults[betName][teamName] = JSON.parse(JSON.stringify(historicBetResultTemplate))
 
       // Determine if bet winning criteria was satisfied in the previous X matches
-      for (let matchIndex in teamDataArray[teamName].matches) {
+      for (let matchIndex in teamDataObj[teamName].matches) {
         matchIndex = parseInt(matchIndex)
-        let match = teamDataArray[teamName].matches[matchIndex]
+        let match = teamDataObj[teamName].matches[matchIndex]
         let nCorners1st = match.Corner.half.home + match.Corner.half.away
         let nCorners2nd = match.Corner.match.home + match.Corner.match.away - nCorners1st
 

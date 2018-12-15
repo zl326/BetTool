@@ -139,7 +139,7 @@ async function getTotalCornerData(map, teamName, recordsToGet, initialPageNumber
       .then(($) => {
 
         // Get the team name
-        teamData.teamName_TC = $('#team_view_title').find('h4').text().match(new RegExp('\\s*([\\S\\s]+)\\s*[-–]\\s*Schedule\\s*'))[1]
+        teamData.teamName_TC = $('#team_view_title').find('h4').text().match(new RegExp('\\s*([\\S\\s]+)\\s+[-–]\\s+Schedule\\s*'))[1]
 
         let $table = $('#inplay_match_table')
 
@@ -333,82 +333,56 @@ async function getTotalCornerDataAllTeams(teamList, map, programOptions) {
   // Set upper limit on quantity of simultaneous requests in order to not accidentally DDOS them
   let maxSimultaneousRequests = programOptions.binSize.binSize
 
+  let options = {
+    recordsToGet: 25,
+    initialPageNumber: 1,
+    recordsAlreadyFound: 0,
+    teamName_TC: undefined,
+  }
+
   let promiseArray = []
-  let promiseArrayTeamNames = []
   let teamDataArray = []
 
-  let teamsFetched = []
+  let teamsUnfetched = JSON.parse(JSON.stringify(teamList)).reverse()
   let teamIndex = 0
 
-  while (teamsFetched.length < teamList.length) {
-    let teamName = teamList[teamIndex]
-    teamIndex = (teamIndex+1) % teamList.length
-    if (teamsFetched.indexOf(teamName) > -1) continue
+  while (teamsUnfetched.length > 0) {
 
-    promiseArray.push(getTotalCornerData(map, teamName, 25, 1, 0, undefined))
-    promiseArrayTeamNames.push(teamName)
+    for (let teamIndex = teamsUnfetched.length-1; teamIndex >= 0; teamIndex--) {
+      let teamName = teamsUnfetched[teamIndex]
 
-    // Execute the promises when the max quantity is reached
-    if (promiseArray.length == maxSimultaneousRequests || teamsFetched.length + promiseArray.length == teamList.length) {
+      promiseArray.push(getTotalCornerData(map, teamName, options.recordsToGet, options.recordsToGet.initialPageNumber, options.recordsAlreadyFound, options.teamName_TC))
 
-      let teamDataArrayLatest = []
-      let nextPromiseArray = []
-      let nextpromiseArrayTeamNames = []
-      teamDataArrayLatest = await miscFunctions.promiseAll(promiseArray)
+      // Execute the promises when the max quantity is reached
+      if (promiseArray.length == maxSimultaneousRequests || teamIndex == 0) {
 
-      // Go through the promises which rejected and try them again
-      teamDataArrayLatest.forEach( (value, index) => {
-        if (value == undefined) {
-          nextPromiseArray.push(getTotalCornerData(map, promiseArrayTeamNames[index], 25, 1, 0, undefined))
-          nextpromiseArrayTeamNames.push(promiseArrayTeamNames[index])
-        }
-        else {
-          teamDataArray.push(value)
-          teamsFetched.push(promiseArrayTeamNames[index])
-        }
-      })
+        let teamDataArrayLatest = []
+        teamDataArrayLatest = await miscFunctions.promiseAll(promiseArray)
 
-      // Reset the promiseArray
-      promiseArray = nextPromiseArray
-      promiseArrayTeamNames = nextpromiseArrayTeamNames
+        // Go through the promises which rejected and try them again
+        teamDataArrayLatest.forEach( (value, index) => {
+          if (value != undefined) {
+            teamDataArray.push(value)
+            let removed = teamsUnfetched.splice(teamsUnfetched.indexOf(value.teamName), 1)
+          }
+        })
 
-      console.log(`---------- Fetched ${teamsFetched.length} of ${teamList.length} Teams ----------`.inverse)
+        // Reset the promiseArray
+        promiseArray = []
+
+        console.log(`---------- Fetched ${teamList.length-teamsUnfetched.length} of ${teamList.length} Teams ----------`.inverse)
+      }
     }
-
-
   }
 
-  for (let teamIndex in teamList) {
-    // let teamName = teamList[teamIndex]
-    //
-    // promiseArray.push(getTotalCornerData(map, teamName, 25, 1, 0, undefined))
-    // promiseArrayTeamNames.push(teamName)
-    //
-    // // Execute the promises when the max quantity is reached
-    // if (promiseArray.length == maxSimultaneousRequests || teamIndex == teamList.length-1) {
-    //
-    //   let teamDataArrayLatest = []
-    //   let nextPromiseArray = []
-    //   let nextpromiseArrayTeamNames = []
-    //   teamDataArrayLatest = await miscFunctions.promiseAll(promiseArray)
-    //
-    //   // Go through the promises which rejected with "noMatchedFound" and try them again
-    //   teamDataArrayLatest.forEach( (value, index) => {
-    //     if (value == undefined) {
-    //       console.log(`Undefined index ${index}`)
-    //       nextPromiseArray.push(getTotalCornerData(map, promiseArrayTeamNames[index], 25, 1, 0, undefined))
-    //       nextpromiseArrayTeamNames.push(teamName)
-    //     }
-    //   })
-    //
-    //   teamDataArray = teamDataArray.concat(teamDataArrayLatest)
-    //   console.log(`---------- Fetched ${teamDataArray.length} of ${teamList.length} Teams ----------`.inverse)
-    //
-    //   // Reset the promiseArray
-    //   promiseArray = [].concat(nextPromiseArray)
-    //   promiseArrayTeamNames = [].concat(nextpromiseArrayTeamNames)
-    // }
-  }
+  teamDataArray.forEach( (value,index) => {
+    if (value.teamName == undefined) {
+      console.log(`Undefined index ${index}`)
+    }
+    else {
+      console.log(`${value.teamName}`)
+    }
+  })
 
   // Convert the array into an object with teamName as the keys
   let teamDataObj = {}
@@ -419,7 +393,7 @@ async function getTotalCornerDataAllTeams(teamList, map, programOptions) {
   return teamDataObj
 }
 
-async function evaluateData(teamDataArray, betConfigs, betsListFootball) {
+async function evaluateData(teamDataObj, betConfigs, betsListFootball) {
 
   let processBetPromiseArray = []
 
@@ -436,7 +410,7 @@ async function evaluateData(teamDataArray, betConfigs, betsListFootball) {
           let event = competition[eventName]
 
           // Deal with this bet depending on what its config is
-          processBetPromiseArray.push(betConfigs[configName].processResults(event, teamDataArray))
+          processBetPromiseArray.push(betConfigs[configName].processResults(event, teamDataObj))
         }
       }
     }
