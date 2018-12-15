@@ -14,6 +14,7 @@ commander
   .option('--pl, --premierLeague', 'Premier League')
   .option('-z, --dummy', 'Dummy')
   .option('-d, --day [value]', 'Query on the nth day ')
+  .option('--bs, --binSize [value]', 'Specify number of simultaneous fetches for historic football data')
   .parse(process.argv);
 
 Promise.all([programFunctions.parseOptions(commander), getBetFunctions.getBetConfigs(commander)])
@@ -26,7 +27,7 @@ Promise.all([programFunctions.parseOptions(commander), getBetFunctions.getBetCon
 
   let promiseArray = []
   for (let category of bets.categories) {
-    if (category == 'football') promiseArray.push(processFootball.processFootball(betConfigs, bets))
+    if (category == 'football') promiseArray.push(processFootball.processFootball(betConfigs, bets, programOptions))
   }
 
   Promise.all(promiseArray)

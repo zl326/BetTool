@@ -10,7 +10,7 @@ const unique = require('array-unique');
 const columnify = require('columnify')
 const colors = require('colors')
 
-async function processFootball(betConfigs, bets) {
+async function processFootball(betConfigs, bets, programOptions) {
   Promise.all([collateFootballTeamsAllCoupons(bets.betsList.football),
                 getMappingSkyTotalCorner()])
   .then( async function([teamList, map]) {
@@ -18,7 +18,7 @@ async function processFootball(betConfigs, bets) {
     map = await checkMappingSkyTotalCorner(map, teamList)
     console.log('')
 
-    let teamDataObj = await getTotalCornerDataAllTeams(teamList, map)
+    let teamDataObj = await getTotalCornerDataAllTeams(teamList, map, programOptions)
     console.log('')
 
     let collatedProcessedEventsArray = await evaluateData(teamDataObj, betConfigs, bets.betsList.football)
@@ -307,6 +307,8 @@ async function getTotalCornerData(map, teamName, recordsToGet, initialPageNumber
         }
       })
       .catch( (err) => {
+        console.log(err.name)
+        console.log(err.statusCode)
         let columnifyData = [{
           message: `${recordsAlreadyFound} matches fetched`,
           teamNameSkyBet: teamData.teamName,
@@ -318,11 +320,11 @@ async function getTotalCornerData(map, teamName, recordsToGet, initialPageNumber
   })
 }
 
-async function getTotalCornerDataAllTeams(teamList, map) {
+async function getTotalCornerDataAllTeams(teamList, map, programOptions) {
   // Get data for all the teams
 
   // Set upper limit on quantity of simultaneous requests in order to not accidentally DDOS them
-  let maxSimultaneousRequests = 25
+  let maxSimultaneousRequests = programOptions.binSize.binSize
 
   let promiseArray = []
   let teamDataArray = []
