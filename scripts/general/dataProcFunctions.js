@@ -14,16 +14,19 @@ async function getWeightedAverage(valueArray, weightingsArray) {
 
   // Calculate the weighted average
   let weightedAverage = 0
-  valueArray.forEach( (value, valueIndex) => {
+  for (let weightingIndex in weightingsArrayFinal) {
+    weightingIndex = parseInt(weightingIndex)
+    let weighting = weightingsArrayFinal[weightingIndex]
+    let value = valueArray[weightingIndex]
 
     if (typeof value == 'boolean') {
-      weightedAverage += value ? weightingsArrayFinal[valueIndex] : 0
+      weightedAverage += value ? weighting : 0
     }
     else if (typeof value == 'number') {
-      weightedAverage += value*weightingsArrayFinal[valueIndex]
+      weightedAverage += value*weighting
     }
     else console.log(`Error! Value to be weighted is neither a number nor a boolean.`)
-  })
+  }
 
   return weightedAverage
 }
