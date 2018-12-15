@@ -1,6 +1,6 @@
 const commander = require('commander');
 
-const helperFunctions = require('./scripts/general/helperFunctions.js');
+const programFunctions = require('./scripts/general/programFunctions.js');
 const getBetFunctions = require('./scripts/getBets/getBetFunctions.js');
 const processFootball = require('./scripts/processBets/processFootball.js');
 
@@ -16,7 +16,7 @@ commander
   .option('-d, --day [value]', 'Query on the nth day ')
   .parse(process.argv);
 
-Promise.all([helperFunctions.parseOptions(commander), getBetFunctions.getBetConfigs(commander)])
+Promise.all([programFunctions.parseOptions(commander), getBetFunctions.getBetConfigs(commander)])
 .then( async function(prelimWorkResult) {
   let programOptions = prelimWorkResult[0]
   let betConfigs = prelimWorkResult[1]

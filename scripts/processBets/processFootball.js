@@ -123,12 +123,9 @@ async function getTotalCornerData(map, teamName, recordsToGet, initialPageNumber
   let columnifyOptions = {
     showHeaders: false,
     columnSplitter: ' | ',
+    truncate: true,
     config: {
       teamNameSkyBet : {
-        minWidth: 25,
-        maxWidth: 25,
-      },
-      teamNameTC : {
         minWidth: 25,
         maxWidth: 25,
       }
@@ -340,7 +337,7 @@ async function getTotalCornerDataAllTeams(teamList, map) {
 
       let teamDataArrayLatest = await Promise.all(promiseArray)
       teamDataArray = teamDataArray.concat(teamDataArrayLatest)
-      console.log(`---------- Fetched ${teamDataArray.length} of ${teamList.length} ----------`.inverse)
+      console.log(`---------- Fetched ${teamDataArray.length} of ${teamList.length} Teams ----------`.inverse)
 
       // Reset the promiseArray
       promiseArray = []

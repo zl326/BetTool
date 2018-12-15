@@ -2,6 +2,8 @@ const moment = require('moment-timezone')
 const columnify = require('columnify')
 const colors = require('colors')
 
+const dataProcFunctions = require('../../../general/dataProcFunctions.js');
+
 async function processResults(event, teamDataArray) {
   // console.log(event)
 
@@ -42,19 +44,9 @@ async function processResults(event, teamDataArray) {
         let nCorners2nd = match.Corner.match.home + match.Corner.match.away - nCorners1st
 
         historicResults[betName][teamName].successArray[matchIndex] = (nCorners1st >= minCornersEachHalf && nCorners2nd >= minCornersEachHalf)
-
-        if (historicResults[betName][teamName].successArray[matchIndex]) {
-          historicResults[betName][teamName].successProbability += 1.0*weightings[matchIndex]/weightingsSum
-        }
-
-        // Deal with if there are fewer matches than number of weightings
-        if (matchIndex == teamDataArray[teamName].matches.length-1 && matchIndex < weightings.length-1) {
-          // Calculate a normalising constant for correcting the current probability value
-          let weightingsSubset = weightings.slice(0,matchIndex+1)
-          let normalisation = weightings.slice(0,matchIndex+1).reduce((a, b) => a + b, 0) / weightingsSum
-          historicResults[betName][teamName].successProbability /= normalisation
-        }
       }
+
+      historicResults[betName][teamName].successProbability = await dataProcFunctions.getWeightedAverage(historicResults[betName][teamName].successArray, weightings)
 
       // Calculate fair odds for this probability of success
       historicResults[betName][teamName].fairOdds = 1/historicResults[betName][teamName].successProbability
