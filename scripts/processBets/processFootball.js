@@ -10,6 +10,8 @@ const unique = require('array-unique');
 const columnify = require('columnify')
 const colors = require('colors')
 
+const miscFunctions = require('../general/miscFunctions.js');
+
 async function processFootball(betConfigs, bets, programOptions) {
   Promise.all([collateFootballTeamsAllCoupons(bets.betsList.football),
                 getMappingSkyTotalCorner()])
@@ -307,15 +309,20 @@ async function getTotalCornerData(map, teamName, recordsToGet, initialPageNumber
         }
       })
       .catch( (err) => {
-        console.log(err.name)
-        console.log(err.statusCode)
-        let columnifyData = [{
-          message: `${recordsAlreadyFound} matches fetched`,
-          teamNameSkyBet: teamData.teamName,
-          teamNameTC: teamData.teamName_TC,
-        }]
-        console.log(columnify(columnifyData, columnifyOptions))
-        resolve(teamData)
+        // console.log(err.name)
+        // console.log(err.statusCode)
+        if (recordsAlreadyFound == 0) {
+          reject('noMatchesFound')
+        }
+        else {
+          let columnifyData = [{
+            message: `${recordsAlreadyFound} matches fetched`,
+            teamNameSkyBet: teamData.teamName,
+            teamNameTC: teamData.teamName_TC,
+          }]
+          console.log(columnify(columnifyData, columnifyOptions))
+          resolve(teamData)
+        }
       })
   })
 }
@@ -327,23 +334,80 @@ async function getTotalCornerDataAllTeams(teamList, map, programOptions) {
   let maxSimultaneousRequests = programOptions.binSize.binSize
 
   let promiseArray = []
+  let promiseArrayTeamNames = []
   let teamDataArray = []
 
-  for (let teamIndex in teamList) {
+  let teamsFetched = []
+  let teamIndex = 0
+
+  while (teamsFetched.length < teamList.length) {
     let teamName = teamList[teamIndex]
+    teamIndex = (teamIndex+1) % teamList.length
+    if (teamsFetched.indexOf(teamName) > -1) continue
 
     promiseArray.push(getTotalCornerData(map, teamName, 25, 1, 0, undefined))
+    promiseArrayTeamNames.push(teamName)
 
     // Execute the promises when the max quantity is reached
-    if (promiseArray.length == maxSimultaneousRequests || teamIndex == teamList.length-1) {
+    if (promiseArray.length == maxSimultaneousRequests || teamsFetched.length + promiseArray.length == teamList.length) {
 
-      let teamDataArrayLatest = await Promise.all(promiseArray)
-      teamDataArray = teamDataArray.concat(teamDataArrayLatest)
-      console.log(`---------- Fetched ${teamDataArray.length} of ${teamList.length} Teams ----------`.inverse)
+      let teamDataArrayLatest = []
+      let nextPromiseArray = []
+      let nextpromiseArrayTeamNames = []
+      teamDataArrayLatest = await miscFunctions.promiseAll(promiseArray)
+
+      // Go through the promises which rejected and try them again
+      teamDataArrayLatest.forEach( (value, index) => {
+        if (value == undefined) {
+          nextPromiseArray.push(getTotalCornerData(map, promiseArrayTeamNames[index], 25, 1, 0, undefined))
+          nextpromiseArrayTeamNames.push(promiseArrayTeamNames[index])
+        }
+        else {
+          teamDataArray.push(value)
+          teamsFetched.push(promiseArrayTeamNames[index])
+        }
+      })
 
       // Reset the promiseArray
-      promiseArray = []
+      promiseArray = nextPromiseArray
+      promiseArrayTeamNames = nextpromiseArrayTeamNames
+
+      console.log(`---------- Fetched ${teamsFetched.length} of ${teamList.length} Teams ----------`.inverse)
     }
+
+
+  }
+
+  for (let teamIndex in teamList) {
+    // let teamName = teamList[teamIndex]
+    //
+    // promiseArray.push(getTotalCornerData(map, teamName, 25, 1, 0, undefined))
+    // promiseArrayTeamNames.push(teamName)
+    //
+    // // Execute the promises when the max quantity is reached
+    // if (promiseArray.length == maxSimultaneousRequests || teamIndex == teamList.length-1) {
+    //
+    //   let teamDataArrayLatest = []
+    //   let nextPromiseArray = []
+    //   let nextpromiseArrayTeamNames = []
+    //   teamDataArrayLatest = await miscFunctions.promiseAll(promiseArray)
+    //
+    //   // Go through the promises which rejected with "noMatchedFound" and try them again
+    //   teamDataArrayLatest.forEach( (value, index) => {
+    //     if (value == undefined) {
+    //       console.log(`Undefined index ${index}`)
+    //       nextPromiseArray.push(getTotalCornerData(map, promiseArrayTeamNames[index], 25, 1, 0, undefined))
+    //       nextpromiseArrayTeamNames.push(teamName)
+    //     }
+    //   })
+    //
+    //   teamDataArray = teamDataArray.concat(teamDataArrayLatest)
+    //   console.log(`---------- Fetched ${teamDataArray.length} of ${teamList.length} Teams ----------`.inverse)
+    //
+    //   // Reset the promiseArray
+    //   promiseArray = [].concat(nextPromiseArray)
+    //   promiseArrayTeamNames = [].concat(nextpromiseArrayTeamNames)
+    // }
   }
 
   // Convert the array into an object with teamName as the keys
