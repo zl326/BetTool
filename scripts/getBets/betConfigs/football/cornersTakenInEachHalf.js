@@ -16,8 +16,7 @@ async function processResults(event, teamDataObj) {
   }
 
   // Calculate the probability of this team winning this bet in the future based on a weighted average of historic data
-  let weightings = [1.5,1.5,1.5,1,1,0.5,0.5,0.5,0.5,0.5,0.25,0.25,0.25,0.25,0.25,0.125,0.125,0.125,0.125,0.125,0.0625,0.0625,0.0625,0.0625,0.0625]
-  // y = 0.1 + 0.9/(cosh(x/3))
+  let weightings = dataProcFunctions.weightingFunc1()
 
   // Get the names of the two teams
   let teamsRegexMatch = event.Teams.match(new RegExp('\\s*([\\S\\s]+)\\s+v\\s+([\\S\\s]+)\\s*'))

@@ -31,6 +31,24 @@ async function getWeightedAverage(valueArray, weightingsArray) {
   return weightedAverage
 }
 
+function weightingFunc1() {
+  // y = 0.1 + 0.9/(cosh(x/3))
+
+  let weightings = []
+  let weightingsSum = 0
+  for (let i = 0; i <= 24; i++) {
+    weightings.push(0.1 + 0.9/Math.cosh(i/3))
+    weightingsSum += weightings[i]
+  }
+
+  for (let weightingIndex in weightings) {
+    weightings[parseInt(weightingIndex)] /= weightingsSum
+  }
+
+  return weightings
+}
+
 module.exports = {
   getWeightedAverage: getWeightedAverage,
+  weightingFunc1: weightingFunc1,
 }
