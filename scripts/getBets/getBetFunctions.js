@@ -43,9 +43,9 @@ async function getBetConfigs(commander) {
     console.log('Total Over Booking Points')
     betConfigsArray.push(require('./betConfigs/football/totalOverBookingPoints.js'))
   }
-  if (commander.all || commander.premierLeague || commander.football) {
-    console.log('Premier League')
-    betConfigsArray.push(require('./betConfigs/football/premierLeague.js'))
+  if (commander.all || commander.totalOverCornersTaken || commander.football) {
+    console.log('Total Over Corners Taken')
+    betConfigsArray.push(require('./betConfigs/football/totalOverCornersTaken.js'))
   }
   if (commander.dummy) {
     console.log('Dummy')

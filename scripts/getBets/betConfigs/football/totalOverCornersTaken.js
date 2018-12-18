@@ -25,7 +25,7 @@ async function processResults(event, teamDataObj) {
 
   // Loop through each bet
   for (let betName in event.bets) {
-    let minBookingPoints = parseInt(betName.match(new RegExp('(\\d+)\\+\\s+'))[1])
+    let minTotalCorners = parseInt(betName.match(new RegExp('(\\d+)\\+\\s+'))[1])
 
     historicResults[betName] = {}
     historicResults[betName].average = JSON.parse(JSON.stringify(historicBetResultTemplate))
@@ -39,7 +39,7 @@ async function processResults(event, teamDataObj) {
         matchIndex = parseInt(matchIndex)
         let match = teamDataObj[teamName].matches[matchIndex]
 
-        historicResults[betName][teamName].successArray[matchIndex] = (match.Home.yellowCard + match.Away.yellowCard)*10 + (match.Home.redCard + match.Away.redCard)*25 >= minBookingPoints
+        historicResults[betName][teamName].successArray[matchIndex] = match.Corner.match.home + match.Corner.match.away >= minTotalCorners
       }
 
       historicResults[betName][teamName].successProbability = await dataProcFunctions.getWeightedAverage(historicResults[betName][teamName].successArray, weightings)
@@ -66,9 +66,9 @@ async function saveResults(event) {
 }
 
 module.exports = {
-  uri: `https://m.skybet.com/football/coupon/10011480`,
+  uri: `https://m.skybet.com/football/coupon/10011477`,
   processResults: processResults,
   displayResults: footballGeneralFunctions.displayResults,
   category: 'football',
-  configName: 'totalOverBookingPoints'
+  configName: 'totalOverCornersTaken'
 }

@@ -11,7 +11,7 @@ commander
   .option('-f, --football', 'All football bets')
   .option('--cteh, --cornersTakenInEachHalf', 'Corners Taken in Each Half')
   .option('--tobp, --totalOverBookingPoints', 'Total Over Booking Points')
-  .option('--pl, --premierLeague', 'Premier League')
+  .option('--toct, --totalOverCornersTaken', 'Total Over Corners Taken')
   .option('-z, --dummy', 'Dummy')
   .option('-d, --day [value]', 'Query on the nth day ')
   .option('--bs, --binSize [value]', 'Specify number of simultaneous fetches for historic football data')
