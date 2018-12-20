@@ -375,15 +375,6 @@ async function getTotalCornerDataAllTeams(teamList, map, programOptions) {
     }
   }
 
-  teamDataArray.forEach( (value,index) => {
-    if (value.teamName == undefined) {
-      console.log(`Undefined index ${index}`)
-    }
-    else {
-      console.log(`${value.teamName}`)
-    }
-  })
-
   // Convert the array into an object with teamName as the keys
   let teamDataObj = {}
   for (let teamData of teamDataArray) {
