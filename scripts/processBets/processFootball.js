@@ -108,6 +108,8 @@ async function saveNewMappingSkyTotalCorner(map) {
 }
 
 async function getTotalCornerData(map, teamName, recordsToGet, initialPageNumber, recordsAlreadyFound, teamName_TC) {
+  if (isNaN(parseInt(map[teamName]))) console.log(`Mapping for ${teamName} is invalid!`)
+
   const options = {
     uri: `https://www.totalcorner.com/team/view/${map[teamName]}/page:${initialPageNumber}`,
     transform: function (body) {
@@ -286,7 +288,6 @@ async function getTotalCornerData(map, teamName, recordsToGet, initialPageNumber
             return false
           }
         })
-
 
         if (recordsAlreadyFound + teamData.matches.length == recordsToGet) {
           let columnifyData = [{
